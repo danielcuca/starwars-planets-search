@@ -3,6 +3,10 @@ import React, { useState, useEffect } from 'react';
 export default function Table() {
   const [planets, setPlanets] = useState([]);
   const [filtered, setFiltered] = useState('');
+  const [filterForm, setFilterForm] = useState('population');
+  const [filterComparation, setFilterComparation] = useState('maior que');
+  const [filterValue, setFilterValue] = useState('0');
+  const [allPlanetsFilter, setAllPlanetsFilter] = useState([]);
 
   useEffect(() => {
     const fetchPlanets = async () => {
@@ -26,8 +30,40 @@ export default function Table() {
     setFiltered(e.target.value);
   };
 
+  const handleFormChange = (e) => {
+    setFilterForm(e.target.value);
+  };
+
+  const handleComparationChange = (e) => {
+    setFilterComparation(e.target.value);
+  };
+
+  const handleValueChange = (e) => {
+    setFilterValue(e.target.value);
+  };
+
+  const formFilterPlanets = (e) => {
+    e.preventDefault();
+    const filterBase = planets.filter((planet) => {
+      const planetValue = parseFloat(planet[filterForm]);
+      const filterNumber = parseFloat(filterValue);
+
+      if (filterComparation === 'maior que') {
+        return planetValue > filterNumber;
+      } if (filterComparation === 'menor que') {
+        return planetValue < filterNumber;
+      } if (filterComparation === 'igual a') {
+        return planetValue === filterNumber;
+      }
+      return false;
+    });
+    setAllPlanetsFilter(filterBase);
+  };
+
   const inputFilter = planets.filter((planet) => planet.name.toLowerCase()
     .includes(filtered.toLowerCase()));
+
+  const filteredPlanets = allPlanetsFilter.length > 0 ? allPlanetsFilter : inputFilter;
 
   return (
     <div>
@@ -38,7 +74,11 @@ export default function Table() {
         data-testid="name-filter"
       />
       <form>
-        <select data-testid="column-filter">
+        <select
+          onChange={ handleFormChange }
+          data-testid="column-filter"
+          value={ filterForm }
+        >
           <option value="population">population</option>
           <option value="orbital_period">orbital_period</option>
           <option value="diameter">diameter</option>
@@ -46,18 +86,24 @@ export default function Table() {
           <option value="surface_water">surface_water</option>
         </select>
 
-        <select data-testid="comparison-filter">
+        <select
+          onChange={ handleComparationChange }
+          data-testid="comparison-filter"
+          value={ filterComparation }
+        >
           <option value="maior que">maior que</option>
           <option value="menor que">menor que</option>
           <option value="igual a">igual a</option>
         </select>
 
         <input
+          onChange={ handleValueChange }
           data-testid="value-filter"
+          value={ filterValue }
           type="number"
         />
 
-        <button data-testid="button-filter">FILTRAR</button>
+        <button onClick={ formFilterPlanets } data-testid="button-filter">FILTRAR</button>
 
       </form>
       <table>
@@ -80,7 +126,7 @@ export default function Table() {
         </thead>
         <tbody>
           {
-            inputFilter.map((planet, index) => (
+            filteredPlanets.map((planet, index) => (
               <tr key={ index }>
                 <td>{planet.name}</td>
                 <td>{planet.rotation_period}</td>

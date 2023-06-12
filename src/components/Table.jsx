@@ -6,7 +6,7 @@ export default function Table() {
   const [filterForm, setFilterForm] = useState('population');
   const [filterComparation, setFilterComparation] = useState('maior que');
   const [filterValue, setFilterValue] = useState('0');
-  const [allPlanetsFilter, setAllPlanetsFilter] = useState([]);
+  const [filterOptions, setFilterOptions] = useState([]);
 
   useEffect(() => {
     const fetchPlanets = async () => {
@@ -42,28 +42,44 @@ export default function Table() {
     setFilterValue(e.target.value);
   };
 
-  const formFilterPlanets = (e) => {
-    e.preventDefault();
-    const filterBase = planets.filter((planet) => {
-      const planetValue = parseFloat(planet[filterForm]);
-      const filterNumber = parseFloat(filterValue);
+  // const handleRemoveFilter = (index) => {
+  //   const updatedFilters = [...filterOptions];
+  //   updatedFilters.splice(index, 1);
+  //   setFilterOptions(updatedFilters);
+  // };
 
-      if (filterComparation === 'maior que') {
-        return planetValue > filterNumber;
-      } if (filterComparation === 'menor que') {
-        return planetValue < filterNumber;
-      } if (filterComparation === 'igual a') {
-        return planetValue === filterNumber;
-      }
-      return false;
-    });
-    setAllPlanetsFilter(filterBase);
+  const handleFilter = () => {
+    const newFilter = {
+      form: filterForm,
+      comparation: filterComparation,
+      value: filterValue,
+    };
+
+    setFilterOptions([...filterOptions, newFilter]);
+
+    const filterBase = planets.filter((planet) => [...filterOptions, newFilter]
+      .every((filter) => {
+        const planetValue = parseFloat(planet[filter.form]);
+        const filterNumber = parseFloat(filter.value);
+
+        if (filter.comparation === 'maior que') {
+          return planetValue > filterNumber;
+        } if (filter.comparation === 'menor que') {
+          return planetValue < filterNumber;
+        } if (filter.comparation === 'igual a') {
+          return planetValue === filterNumber;
+        }
+
+        return false;
+      }));
+
+    setPlanets(filterBase);
   };
 
   const inputFilter = planets.filter((planet) => planet.name.toLowerCase()
     .includes(filtered.toLowerCase()));
 
-  const filteredPlanets = allPlanetsFilter.length > 0 ? allPlanetsFilter : inputFilter;
+  const filteredPlanets = inputFilter;
 
   return (
     <div>
@@ -103,7 +119,13 @@ export default function Table() {
           type="number"
         />
 
-        <button onClick={ formFilterPlanets } data-testid="button-filter">FILTRAR</button>
+        <button
+          type="button"
+          onClick={ handleFilter }
+          data-testid="button-filter"
+        >
+          Filtrar
+        </button>
 
       </form>
       <table>

@@ -7,6 +7,13 @@ export default function Table() {
   const [filterComparation, setFilterComparation] = useState('maior que');
   const [filterValue, setFilterValue] = useState('0');
   const [filterOptions, setFilterOptions] = useState([]);
+  const [filterOptionAvaliable, setfilterOptionAvaliable] = useState([
+    'population',
+    'orbital_period',
+    'diameter',
+    'rotation_period',
+    'surface_water',
+  ]);
 
   useEffect(() => {
     const fetchPlanets = async () => {
@@ -56,6 +63,7 @@ export default function Table() {
     };
 
     setFilterOptions([...filterOptions, newFilter]);
+    setfilterOptionAvaliable(filterOptionAvaliable.filter((option) => option !== filterForm));
 
     const filterBase = planets.filter((planet) => [...filterOptions, newFilter]
       .every((filter) => {
@@ -95,11 +103,11 @@ export default function Table() {
           data-testid="column-filter"
           value={ filterForm }
         >
-          <option value="population">population</option>
-          <option value="orbital_period">orbital_period</option>
-          <option value="diameter">diameter</option>
-          <option value="rotation_period">rotation_period</option>
-          <option value="surface_water">surface_water</option>
+          {filterOptionAvaliable.map((option) => (
+            <option key={ option } value={ option }>
+              {option}
+            </option>
+          ))}
         </select>
 
         <select

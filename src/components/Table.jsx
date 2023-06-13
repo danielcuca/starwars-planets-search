@@ -7,16 +7,12 @@ export default function Table() {
   const [filterComparation, setFilterComparation] = useState('maior que');
   const [filterValue, setFilterValue] = useState('0');
   const [filterOptions, setFilterOptions] = useState([]);
-  const [filterOptionAvaliable, setfilterOptionAvaliable] = useState([
-    'population',
-    'orbital_period',
-    'diameter',
-    'rotation_period',
-    'surface_water',
-  ]);
+  const [loading, setLoading] = useState(false);
+  // const [filterOptionAvaliable, setfilterOptionAvaliable] = useState([]);
 
   useEffect(() => {
     const fetchPlanets = async () => {
+      setLoading(true);
       try {
         const response = await fetch('https://swapi.dev/api/planets');
         const data = await response.json();
@@ -27,11 +23,24 @@ export default function Table() {
         setPlanets(deleteResidents);
       } catch (error) {
         console.log('error:', error);
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchPlanets();
   }, []);
+
+  const optionsAvaliable = [
+    'population',
+    'orbital_period',
+    'diameter',
+    'rotation_period',
+    'surface_water',
+  ];
+
+  const filterUsed = optionsAvaliable
+    .filter((element) => !filterOptions.some((ele) => ele.form === element));
 
   const handleChange = (e) => {
     setFiltered(e.target.value);
@@ -63,12 +72,16 @@ export default function Table() {
     };
 
     setFilterOptions([...filterOptions, newFilter]);
-    setfilterOptionAvaliable(filterOptionAvaliable.filter((option) => option !== filterForm));
+
+    setFilterForm(optionsAvaliable[optionsAvaliable.indexOf(filterForm) + 1]
+      || filterUsed[0]);
 
     const filterBase = planets.filter((planet) => [...filterOptions, newFilter]
       .every((filter) => {
         const planetValue = parseFloat(planet[filter.form]);
         const filterNumber = parseFloat(filter.value);
+        console.log(planetValue !== 'unknwon' && planetValue);
+        if (planetValue === 'unknown') return false;
 
         if (filter.comparation === 'maior que') {
           return planetValue > filterNumber;
@@ -89,6 +102,14 @@ export default function Table() {
 
   const filteredPlanets = inputFilter;
 
+  if (loading) {
+    return (
+      <div>
+        <h2>Carregando</h2>
+      </div>
+    );
+  }
+
   return (
     <div>
       <input
@@ -103,7 +124,7 @@ export default function Table() {
           data-testid="column-filter"
           value={ filterForm }
         >
-          {filterOptionAvaliable.map((option) => (
+          {filterUsed.map((option) => (
             <option key={ option } value={ option }>
               {option}
             </option>

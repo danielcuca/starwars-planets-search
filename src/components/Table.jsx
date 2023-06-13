@@ -8,7 +8,7 @@ export default function Table() {
   const [filterValue, setFilterValue] = useState('0');
   const [filterOptions, setFilterOptions] = useState([]);
   const [loading, setLoading] = useState(false);
-  // const [filterOptionAvaliable, setfilterOptionAvaliable] = useState([]);
+  const [filterBase, setFilterBase] = useState([]);
 
   useEffect(() => {
     const fetchPlanets = async () => {
@@ -58,29 +58,12 @@ export default function Table() {
     setFilterValue(e.target.value);
   };
 
-  // const handleRemoveFilter = (index) => {
-  //   const updatedFilters = [...filterOptions];
-  //   updatedFilters.splice(index, 1);
-  //   setFilterOptions(updatedFilters);
-  // };
-
-  const handleFilter = () => {
-    const newFilter = {
-      form: filterForm,
-      comparation: filterComparation,
-      value: filterValue,
-    };
-
-    setFilterOptions([...filterOptions, newFilter]);
-
-    setFilterForm(optionsAvaliable[optionsAvaliable.indexOf(filterForm) + 1]
-      || filterUsed[0]);
-
-    const filterBase = planets.filter((planet) => [...filterOptions, newFilter]
-      .every((filter) => {
+  useEffect(() => {
+    const filteredBase = planets
+      .filter((planet) => filterOptions.every((filter) => {
         const planetValue = parseFloat(planet[filter.form]);
         const filterNumber = parseFloat(filter.value);
-        console.log(planetValue !== 'unknwon' && planetValue);
+
         if (planetValue === 'unknown') return false;
 
         if (filter.comparation === 'maior que') {
@@ -93,14 +76,30 @@ export default function Table() {
 
         return false;
       }));
+    setFilterBase(filteredBase);
+  }, [filterOptions, planets]);
 
-    setPlanets(filterBase);
+  const handleFilter = () => {
+    const newFilter = {
+      form: filterForm,
+      comparation: filterComparation,
+      value: filterValue,
+    };
+
+    setFilterOptions([...filterOptions, newFilter]);
+
+    setFilterForm(optionsAvaliable[optionsAvaliable
+      .indexOf(filterForm) + 1] || filterUsed[0]);
   };
 
-  const inputFilter = planets.filter((planet) => planet.name.toLowerCase()
-    .includes(filtered.toLowerCase()));
+  const handleRemove = (column) => {
+    const updatedFilters = filterOptions.filter((prev) => prev.form !== column);
+    setFilterOptions(updatedFilters);
+  };
 
-  const filteredPlanets = inputFilter;
+  const handleRemoveAll = () => {
+    setFilterOptions([]);
+  };
 
   if (loading) {
     return (
@@ -156,6 +155,21 @@ export default function Table() {
           Filtrar
         </button>
 
+        <button
+          data-testid="button-remove-filters"
+          type="button"
+          onClick={ handleRemoveAll }
+        >
+          Remover todas filtragens
+        </button>
+
+        {filterOptions.map((filter, index) => (
+          <div data-testid="filter" key={ index }>
+            {`${filter.form} ${filter.comparation} ${filter.value}`}
+            <button type="button" onClick={ () => handleRemove(filter.form) }>x</button>
+          </div>
+        ))}
+
       </form>
       <table>
         <thead>
@@ -176,8 +190,10 @@ export default function Table() {
           </tr>
         </thead>
         <tbody>
-          {
-            filteredPlanets.map((planet, index) => (
+          {filterBase.filter((planet) => planet.name
+            .toLowerCase()
+            .includes(filtered.toLowerCase()))
+            .map((planet, index) => (
               <tr key={ index }>
                 <td>{planet.name}</td>
                 <td>{planet.rotation_period}</td>
@@ -193,8 +209,7 @@ export default function Table() {
                 <td>{planet.edited}</td>
                 <td>{planet.url}</td>
               </tr>
-            ))
-          }
+            ))}
         </tbody>
       </table>
     </div>

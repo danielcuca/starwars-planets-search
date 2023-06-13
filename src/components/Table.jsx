@@ -166,7 +166,14 @@ export default function Table() {
         {filterOptions.map((filter, index) => (
           <div data-testid="filter" key={ index }>
             {`${filter.form} ${filter.comparation} ${filter.value}`}
-            <button type="button" onClick={ () => handleRemove(filter.form) }>x</button>
+            <button
+              data-testid="remove-button"
+              type="button"
+              onClick={ () => handleRemove(filter.form) }
+            >
+              x
+
+            </button>
           </div>
         ))}
 
